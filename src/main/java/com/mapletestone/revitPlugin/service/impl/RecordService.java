@@ -10,11 +10,14 @@ import com.mapletestone.revitPlugin.dao.mapper.RecordMapper;
 
 import com.mapletestone.revitPlugin.service.CommonService;
 import com.mapletestone.revitPlugin.utils.FileUtils;
+import com.mapletestone.revitPlugin.utils.ZipTxtJsonReader;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.File;
 import java.util.Date;
 import java.util.List;
 
@@ -25,6 +28,10 @@ import java.util.List;
 public class RecordService extends BaseIService<RecordMapper, Record> {
     @Resource
     private CommonService commonService;
+
+    @Value("${web.file.root}")
+    private String fileRootPath;
+
     public boolean saveRecord(String record, String loginUser, MultipartFile file) {
         Date date = new Date();
         Record recordEntity = new Record();
@@ -39,8 +46,15 @@ public class RecordService extends BaseIService<RecordMapper, Record> {
             FileDocumentVO fileDocumentVO = commonService.uploadFile(file, "zip", suffixNotDot);
             String filePath = fileDocumentVO.getFilePath();
             recordEntity.setFilePath(filePath);
+            String realZipPath = buildRealFilePath(filePath);
+            System.out.println("realZipPath:"+realZipPath);
+            recordEntity.setRecord(ZipTxtJsonReader.collectJsonString(realZipPath, loginUser));
         }
         return save(recordEntity);
+    }
+
+    private String buildRealFilePath(String filePath) {
+        return fileRootPath + filePath.replace("/", File.separator);
     }
 
     public List<Record> getRecordList(String like) {
@@ -67,6 +81,7 @@ public class RecordService extends BaseIService<RecordMapper, Record> {
         if (StringUtils.isNotEmpty(startDate)&&StringUtils.isNotEmpty(endDate)){
             wrapper.between(Record::getCreatedTime,startDate+ " 00:00:00",endDate+ " 23:59:59");
         }
+        wrapper.orderByDesc(Record::getCreatedTime);
 
         return baseMapper.selectPage(new Page<>(page, size), wrapper);
     }
