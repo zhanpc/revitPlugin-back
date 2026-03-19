@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
  */
 public class ZipTxtJsonReaderTest {
 
-    private static final String ZIP_PATH = "C:\\Users\\OUYANG\\Desktop\\Envelope_20260318_201505.zip";
+    private static final String ZIP_PATH = "C:\\Users\\OUYANG\\Desktop\\SingleCase_sap2idea_20260318_183454.zip";
     private static final String ZIP_PASSWORD = "sap2idea";
 
     @Test

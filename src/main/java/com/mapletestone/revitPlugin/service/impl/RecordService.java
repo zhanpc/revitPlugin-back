@@ -47,7 +47,6 @@ public class RecordService extends BaseIService<RecordMapper, Record> {
             String filePath = fileDocumentVO.getFilePath();
             recordEntity.setFilePath(filePath);
             String realZipPath = buildRealFilePath(filePath);
-            System.out.println("realZipPath:"+realZipPath);
             recordEntity.setRecord(ZipTxtJsonReader.collectJsonString(realZipPath, loginUser));
         }
         return save(recordEntity);
@@ -88,5 +87,30 @@ public class RecordService extends BaseIService<RecordMapper, Record> {
 
     public boolean deleteRecord(String id) {
         return removeById(id);
+    }
+
+    public int parseEmptyRecordFromZip() {
+        LambdaQueryWrapper<Record> wrapper = new LambdaQueryWrapper<>();
+        wrapper.and(w -> w.isNull(Record::getRecord)
+                        .or()
+                        .eq(Record::getRecord, ""))
+                .and(w -> w.isNotNull(Record::getFilePath)
+                        .ne(Record::getFilePath, ""));
+
+        List<Record> recordList = list(wrapper);
+        if (recordList.isEmpty()) {
+            return 0;
+        }
+
+        int successCount = 0;
+        for (Record record : recordList) {
+            String realZipPath = buildRealFilePath(record.getFilePath());
+            record.setRecord(ZipTxtJsonReader.collectJsonString(realZipPath, record.getCreatedUser()));
+            record.setLastModifiedTime(new Date());
+            if (updateById(record)) {
+                successCount++;
+            }
+        }
+        return successCount;
     }
 }

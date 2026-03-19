@@ -59,4 +59,10 @@ public class RecordController {
         boolean result = recordService.deleteRecord(id);
         return  ResponseVO.getStatusJoMsg(result, HttpConst.DELETE_SUCCESS, HttpConst.DELETE_FAILED);
     }
+
+    @PostMapping("/parseEmptyRecord")
+    public ResponseVO<String> parseEmptyRecord() {
+        int count = recordService.parseEmptyRecordFromZip();
+        return ResponseVO.success("处理完成，共回填 " + count + " 条记录");
+    }
 }

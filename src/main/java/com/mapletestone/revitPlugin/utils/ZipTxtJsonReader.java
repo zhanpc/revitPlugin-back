@@ -45,7 +45,7 @@ public final class ZipTxtJsonReader {
 
             JSONArray result = new JSONArray();
             for (FileHeader fileHeader : fileHeaders) {
-                mergeJsonContent(zipFile, fileHeader, result);
+                mergeJsonContent(zipFile, zipPath, fileHeader, result);
             }
             return result;
         } catch (ZipException | IOException ex) {
@@ -78,7 +78,7 @@ public final class ZipTxtJsonReader {
         return lowerFileName.endsWith(".txt") || lowerFileName.endsWith(".json");
     }
 
-    private static void mergeJsonContent(ZipFile zipFile, FileHeader fileHeader, JSONArray result)
+    private static void mergeJsonContent(ZipFile zipFile, String zipPath, FileHeader fileHeader, JSONArray result)
             throws ZipException, IOException {
         try (ZipInputStream inputStream = zipFile.getInputStream(fileHeader)) {
             String text = IOUtils.toString(inputStream, TXT_CHARSET);
@@ -94,7 +94,10 @@ public final class ZipTxtJsonReader {
             }
             result.add(parsed);
         } catch (Exception ex) {
-            throw new IllegalArgumentException("解析压缩包内 JSON 失败: " + fileHeader.getFileName(), ex);
+            throw new IllegalArgumentException(
+                    "解析压缩包内 JSON 失败，zip: " + zipPath + "，entry: " + fileHeader.getFileName(),
+                    ex
+            );
         }
     }
 
